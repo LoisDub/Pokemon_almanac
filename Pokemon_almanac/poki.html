@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Pokédex</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="container">
+        <div class="device">
+            <div class="header">
+                <img src="image/download.png" height ="268px" width="568px">
+                <H1></H1>
+                <div class="type-pp">
+                    <input type="text" id="pokemon-search" placeholder="Name or #">
+                    <img src="image/ball.png" height="50px" width="50px">
+                </div>
+            </div>
+            <div class="left-panel">
+                <div class="Upper">
+                    <div class="camera1">
+                    <div class="camera">
+                        <div class="flare"></div>
+                    </div>
+                    </div>
+                    <span class="diagonal"></span>
+                    <div class="lights">
+                        <div class="red"><div class="flares"></div></div>
+                        <div class="yellow"><div class="flares"></div></div>
+                        <div class="green"><div class="flares"></div></div>
+                    </div>
+                </div>
+                
+                <div class="Screen">
+                    <div class="top">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="display1">
+                        <img class="pokemon-image" src="" alt="Pokemon" style="display: none;">
+                    </div>
+                    <div class="bottom">
+                        <div class="dot1">
+                            <div class="shimmer"></div>
+                        </div>
+                        <div class="lines">
+                            <div class="line1"></div>
+                            <div class="line1"></div>
+                            <div class="line1"></div>
+                            <div class="line1"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <div class="joystick"></div>
+                    <div class="lins">
+                        <div class="lin"></div>
+                        <div class="lin2"></div>
+                    </div>
+                    
+                    <div class="cross">
+                        <div class="horizontal"></div>
+                        <div class="vertical"><div class="balls"></div></div>
+                    </div>
+                    <div class="displays">
+                        <div class="pokemon-name"></div> 
+                    </div>
+                </div>
+            </div>
+            <div class="extra">
+                <div class="right-panel">
+                    <div class="grid"></div>
+                </div>
+                <div class="boxx"></div>
+                <div class="info">
+                        <div class="height"><H1>Height: </H1></div>
+                        <div class="weight"><H1>Weight: </H1></div>
+                </div>
+                <div class="grid-container">
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                    <div class="item"></div>
+                </div>
+                <div class="extra-controls">
+                    <div class="small-btns">
+                        <div class="white"></div>
+                        <div class="white"></div>
+                    </div>
+                    <div class="q">
+                        <div class="w"></div>
+                        <div class="w"></div>
+                    </div>
+                    <div class="qwe">
+                        <div class="redo"></div>
+                        <div class="redo"></div>
+                    </div>
+                    <div class="yellowl"></div>
+                    <div class="type-row">
+                        <b><div class="pokemon-types"></div></b>
+                        <b><div class="pokemon-number"></div></b>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            loadPokemon('mewtwo');
+            
+            let searchTimeout;
+            $('#pokemon-search').on('input', function() {
+                clearTimeout(searchTimeout);
+                const searchTerm = $(this).val().toLowerCase().trim();
+                if (searchTerm) {
+                    searchTimeout = setTimeout(() => {
+                        loadPokemon(searchTerm);
+                    }, 500);
+                }
+            });
+        });
+        
+        function loadPokemon(identifier) {
+            $('.loading').show();
+            $('.pokemon-image').hide();
+            
+            $('.pokemon-name').text('');
+            $('.pokemon-number').text('');
+            $('.height').text('Height: ');
+            $('.weight').text('Weight: ');
+            $('.pokemon-types').empty();
+            
+            $.ajax({
+                url: `https://pokeapi.co/api/v2/pokemon/${identifier}`,
+                method: 'GET',
+                success: function(data) {
+                    displayPokemon(data);
+                },
+                error: function() {
+                    $('.loading').text('Not found!');
+                    setTimeout(function() {
+                        $('.loading').text('Loading...');
+                        loadPokemon('pikachu'); // Default back to Pikachu
+                    }, 1500);
+                }
+            });
+        }
+        
+        function displayPokemon(pokemon) {
+            $('.loading').hide();
+            
+            const imgUrl = pokemon.sprites.versions['generation-v']['black-white'].animated.front_default || 
+                          pokemon.sprites.front_default;
+            $('.pokemon-image')
+                .attr('src', imgUrl)
+                .css({ opacity: 0, scale: 0.8 })
+                .show()
+                .animate({ opacity: 1, scale: 1 }, 300);
+            
+            const name = pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1);
+            $('.pokemon-name')
+                .text(name)
+                .css({ opacity: 0 })
+                .animate({ opacity: 1 }, 400);
+            
+            $('.height')
+                .text(`Height: ${pokemon.height}`)
+                .css({ opacity: 0 })
+                .animate({ opacity: 1 }, 400);
+            
+            $('.weight')
+                .text(`Weight: ${pokemon.weight}`)
+                .css({ opacity: 0 })
+                .animate({ opacity: 1 }, 400);
+            
+            pokemon.types.forEach((type, index) => {
+                $('.pokemon-types').append(
+                    $(`<span class="pokemon-type">${type.type.name}</span>`)
+                        .css({ opacity: 0 })
+                        .delay(100 * index)
+                        .animate({ opacity: 1 }, 300)
+                );
+            });
+            
+            $('.pokemon-number')
+                .text(pokemon.id)
+                .css({ opacity: 0 })
+                .animate({ opacity: 1 }, 400);
+        }
+    </script>
+</body>
+</html>
